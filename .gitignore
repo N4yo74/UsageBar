@@ -1,0 +1,14 @@
+# Build output
+bin/
+obj/
+publish/
+out/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+
+# Local runtime data lives in %LOCALAPPDATA%\CodexBarWin (diagnostics.json / budget.json /
+# the WebView2 login profile) - never committed. Listed here only as a reminder.

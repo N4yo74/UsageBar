@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CodexBarWin.App/CodexBarWin.App.csproj" />
+    <Project Path="src/CodexBarWin.Cli/CodexBarWin.Cli.csproj" />
+    <Project Path="src/CodexBarWin.Core/CodexBarWin.Core.csproj" />
+  </Folder>
+</Solution>
