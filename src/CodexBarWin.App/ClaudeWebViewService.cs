@@ -300,15 +300,41 @@ public sealed class ClaudeWebViewService : IDisposable
                         window.chrome.webview.postMessage(JSON.stringify({ __error: 'other:no_orgs' }));
                         return;
                     }
-                    const uuid = orgs[0].uuid;
-                    const usageResp = await fetch('/api/organizations/' + uuid + '/usage', { headers: { accept: 'application/json' } });
-                    if (!usageResp.ok) {
-                        const kind = (usageResp.status === 401 || usageResp.status === 403) ? 'unauthorized' : ('other:http_' + usageResp.status);
-                        window.chrome.webview.postMessage(JSON.stringify({ __error: kind }));
+
+                    // Some accounts belong to multiple orgs, and the first one isn't
+                    // always the one with usage data (seen in the wild returning an
+                    // empty body). Try each org in order and keep the first response
+                    // that actually has usage.five_hour or a non-empty limits array;
+                    // if none qualify, fall back to the first org's response so the
+                    // caller still gets *some* error detail to report.
+                    let firstUsageBody = null;
+                    for (const org of orgs) {
+                        if (!org || !org.uuid) continue;
+                        const usageResp = await fetch('/api/organizations/' + org.uuid + '/usage', { headers: { accept: 'application/json' } });
+                        if (!usageResp.ok) {
+                            if (firstUsageBody === null) {
+                                const kind = (usageResp.status === 401 || usageResp.status === 403) ? 'unauthorized' : ('other:http_' + usageResp.status);
+                                firstUsageBody = { __error: kind };
+                            }
+                            continue;
+                        }
+                        const u = await usageResp.json();
+                        const hasFiveHour = u && u.usage && u.usage.five_hour;
+                        const hasLimits = u && Array.isArray(u.limits) && u.limits.length > 0;
+                        if (hasFiveHour || hasLimits) {
+                            window.chrome.webview.postMessage(JSON.stringify(u));
+                            return;
+                        }
+                        if (firstUsageBody === null) {
+                            firstUsageBody = u;
+                        }
+                    }
+
+                    if (firstUsageBody !== null) {
+                        window.chrome.webview.postMessage(JSON.stringify(firstUsageBody));
                         return;
                     }
-                    const u = await usageResp.json();
-                    window.chrome.webview.postMessage(JSON.stringify(u));
+                    window.chrome.webview.postMessage(JSON.stringify({ __error: 'other:no_orgs' }));
                 } catch (e) {
                     window.chrome.webview.postMessage(JSON.stringify({ __error: 'other:exception' }));
                 }

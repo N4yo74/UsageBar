@@ -1,15 +1,37 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
+using System.Reflection;
 
 namespace CodexBarWin.App;
 
 /// <summary>
-/// Generates a tiny tray icon at runtime (no .ico asset needed). Created once for the
-/// lifetime of the process, so the small GDI handle leak from Icon.FromHandle is fine.
+/// Loads the app's tray icon from the bundled <c>assets/usagebar.ico</c> file
+/// (copied next to the exe at build time). Falls back to a small runtime-drawn
+/// icon if the asset is missing for any reason (e.g. a stripped-down copy of
+/// the output directory).
 /// </summary>
 internal static class TrayIconFactory
 {
     public static Icon CreateIcon()
+    {
+        var icoPath = Path.Combine(AppContext.BaseDirectory, "assets", "usagebar.ico");
+        if (File.Exists(icoPath))
+        {
+            try
+            {
+                return new Icon(icoPath);
+            }
+            catch
+            {
+                // Fall through to the runtime-drawn fallback below.
+            }
+        }
+
+        return CreateFallbackIcon();
+    }
+
+    private static Icon CreateFallbackIcon()
     {
         using var bitmap = new Bitmap(16, 16);
         using (var g = Graphics.FromImage(bitmap))

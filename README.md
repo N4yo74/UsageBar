@@ -23,6 +23,7 @@ Anthropic or OpenAI**.
   `advice.level` hint, so other tools (or an agent) can read your remaining budget
   in one cheap file read and scale work accordingly.
 - **Start with Windows** toggle (tray right-click).
+- Custom tray/app icon (`src/CodexBarWin.App/assets/usagebar.ico`, 16/32/48/256px), no runtime GDI drawing needed.
 
 ## Requirements
 
@@ -45,6 +46,21 @@ A `codexbarwin` CLI is also included for a one-shot text summary:
 ```powershell
 dotnet run --project src/CodexBarWin.Cli
 ```
+
+## Publish a standalone distributable
+
+To build a single self-contained `.exe` that runs on a machine without the
+.NET runtime installed:
+
+```powershell
+dotnet publish src/CodexBarWin.App/CodexBarWin.App.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish
+```
+
+`IncludeNativeLibrariesForSelfExtract=true` is required so the WebView2 loader
+native DLL is bundled into the single file instead of expected alongside it.
+The output is `publish\CodexBarWin.exe` — copy/rename it to `publish\UsageBar.exe`
+for distribution (a self-contained single-file exe works under any file name).
+**Distribute `publish\UsageBar.exe`.**
 
 ## Claude login (one-time)
 
