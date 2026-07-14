@@ -53,7 +53,7 @@ To build a single self-contained `.exe` that runs on a machine without the
 .NET runtime installed:
 
 ```powershell
-dotnet publish src/CodexBarWin.App/CodexBarWin.App.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish
+dotnet publish src/CodexBarWin.App/CodexBarWin.App.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish
 ```
 
 `IncludeNativeLibrariesForSelfExtract=true` is required so the WebView2 loader
